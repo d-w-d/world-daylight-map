@@ -7,9 +7,16 @@ import * as d3 from 'd3';
 import citiesData from './data-cities.json';
 import worldSVG from './data-world-topo.json';
 import { IXY, ILatLng, IOptions } from './models';
+import { simpleUID } from './utils';
 
 export class WorldDaylightMapGen {
-  //
+  // Define unique ids for this instance
+  private readonly uid = simpleUID();
+  private readonly svgId = 'svg-' + this.uid;
+  private readonly dateTextId = 'date-text-' + this.uid;
+  private readonly timeTextId = 'time-text-' + this.uid;
+  private readonly timezoneTextId = 'timezone-text-' + this.uid;
+  // Other params
   private currDate: Date = new Date();
   private svg: SVGElement | undefined;
   private projectionScale: number;
@@ -28,7 +35,7 @@ export class WorldDaylightMapGen {
     opacity: 0 | 1;
   }[] = [];
 
-  constructor(private svgId: string, options?: Partial<IOptions>) {
+  constructor(options?: Partial<IOptions>) {
     // Check for dependencies
     if (!SunCalc || !d3) {
       throw new Error('Unmet dependency (requires d3.js, SunCalc)');
@@ -59,6 +66,12 @@ export class WorldDaylightMapGen {
     this.scalarY = this.options.mapHeight / 180;
     this.projectionScale = this.options.mapWidth / 6.25;
   }
+
+  // Getters
+  getSvgId = () => this.svgId;
+  getTimeTextId = () => this.timeTextId;
+  getTimezoneTextId = () => this.timezoneTextId;
+  getDateTextId = () => this.dateTextId;
 
   // Utility method for altering color luminance.
   colorLuminance(hex: string, lum = 0) {
@@ -138,7 +151,6 @@ export class WorldDaylightMapGen {
       lng += this.options.precisionLat;
     }
     if (result.lat === -1 && result.lng === -1) throw new Error('Poor Logic');
-
     return this.coordToXY(result);
   }
 
@@ -186,7 +198,6 @@ export class WorldDaylightMapGen {
   getPathString(isNorthSun: boolean) {
     const pathData = this.getPath(isNorthSun);
     const yStart = isNorthSun ? this.options.mapHeight : 0;
-
     const lineFunction = d3
       .line<IXY>()
       .x(function(d) {
@@ -200,7 +211,6 @@ export class WorldDaylightMapGen {
     const path = `M 0 ${yStart} ${lineFunction(pathData)} L  ${
       this.options.mapWidth
     }, ${yStart} L 0, ${yStart} `;
-
     return path;
   }
 
@@ -267,11 +277,12 @@ export class WorldDaylightMapGen {
         `0 0  ${this.options.mapWidth} ${this.options.mapHeight}`
       )
       .attr('preserveAspectRatio', 'none')
+      // DWD: I'm extending the rect above the top edge of the svg
+      // in order to provide a background to the controls when "outer-top" selected
       .append('rect')
       .attr('width', this.options.mapWidth)
       .attr('height', this.options.mapHeight + 999)
       .attr('y', -999)
-      // .style('overflow', 'visible')
       .attr('fill', 'url(#gradient)');
   }
 
@@ -366,12 +377,10 @@ export class WorldDaylightMapGen {
   }
 
   redrawCities() {
-    // let k = 0;
     this.cities.forEach((val, i) => {
       const opacity = this.getCityOpacity(val.latLng);
       if (val.opacity !== opacity) {
         this.cities[i].opacity = opacity;
-        // k++;
         d3.select(`#${val.id}`)
           .transition()
           .duration(this.options.tickDur * 2)
@@ -413,6 +422,9 @@ export class WorldDaylightMapGen {
   }
 
   shuffleElements() {
+    //
+    // DWD: Not sure what this is supposed to do
+    //
     /* 				$('#land').insertBefore('#nightPath');
             return $('#sun').insertBefore('#land'); */
     // const land = document.getElementById('land');
@@ -429,7 +441,6 @@ export class WorldDaylightMapGen {
   animate(increment = 0) {
     if (!this.isAnimating) {
       this.isAnimating = true;
-
       /* 			this.animInterval = setInterval(() => {
                             this.redrawAll(increment);
                             $(document).trigger('update-date-time', this.currDate);
@@ -438,8 +449,8 @@ export class WorldDaylightMapGen {
   }
 
   updateDateTime() {
-    // const date: Date = this.currDate;
-
+    //
+    //
     // Determine Timezone
     const regEx = this.currDate.toString().match(/\(([A-Za-z\s].*)\)/);
     if (!regEx) {
@@ -447,30 +458,34 @@ export class WorldDaylightMapGen {
     }
     const tz = regEx[1];
 
-    console.log('tz', tz);
-
-    // Set Displayed Time
-    const timezoneLabelText = document.getElementById('timezone-label-text');
+    //
+    //
+    // Set Displayed Timezone
+    const timezoneLabelText = document.getElementById(this.timezoneTextId);
     if (timezoneLabelText) {
       timezoneLabelText.innerText = tz;
     } else {
-      throw new Error("Can't find time-text span");
+      throw new Error("Can't find span with id: " + this.timezoneTextId);
     }
 
+    //
+    //
     // Set Displayed Time
-    const timeTextSpan = document.getElementById('time-text');
+    const timeTextSpan = document.getElementById(this.timeTextId);
     if (timeTextSpan) {
       timeTextSpan.innerText = moment(this.currDate).format('HH:mm');
     } else {
-      throw new Error("Can't find time-text-span");
+      throw new Error("Can't find span with id: " + this.timeTextId);
     }
 
+    //
+    //
     // Set Displayed Date
-    const dateTextSpan = document.getElementById('date-text');
+    const dateTextSpan = document.getElementById(this.dateTextId);
     if (dateTextSpan) {
       dateTextSpan.innerText = moment(this.currDate).format('DD MMM');
     } else {
-      throw new Error("Can't find date-text-span");
+      throw new Error("Can't find span with id: " + this.dateTextId);
     }
   }
 
@@ -484,7 +499,7 @@ export class WorldDaylightMapGen {
     // Find and set SVGElement
     const svg: SVGElement | null = document.getElementById(this.svgId) as any;
     if (!(svg instanceof SVGElement)) {
-      throw new TypeError('You must have a valid SVG in the DOM at init time!');
+      throw new Error("Can't find span with id: " + this.svgId);
     }
     this.svg = svg;
 
@@ -498,19 +513,4 @@ export class WorldDaylightMapGen {
       this.updateDateTime();
     }, this.options.refreshMapInterval);
   }
-
-  // searchCities (str) {
-  //     cities = _.filter(this.cities, (val) => { val.title.toLowerCase().indexOf(str) === 0});
-  //     cities = _.sortBy(cities, (val) => { val.population });
-  //     cities.reverse();
-  // }
 }
-
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-// END OF CLASS DEF
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////

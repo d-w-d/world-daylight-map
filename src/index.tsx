@@ -14,42 +14,54 @@ export type TControlsPosition =
   | 'no-controls';
 
 export interface IProps {
-  width?: string;
-  height?: string;
-  controlsPosition?: TControlsPosition;
-  font?: string;
-  fontSize?: number | string;
-  controlsScale?: number;
+  options: {
+    width?: number | string;
+    height?: number | string;
+    controlsPosition?: TControlsPosition;
+    font?: string;
+    fontSize?: number | string;
+    controlsScale?: number;
+  };
 }
 
-export const WorldDaylightMap = ({
-  // Provide default values to props
-  width = '100%',
-  height = '100%',
-  controlsPosition = 'outer-top',
-  font = "'Roboto', sans-serif",
-  fontSize = undefined,
-  controlsScale = 1,
-}: IProps) => {
+export const WorldDaylightMap = (props: IProps) => {
+  //
+  //
+  // Combine supplied options with default values
+  const options: IProps['options'] = {
+    ...{
+      width: '100%',
+      height: '100%',
+      controlsPosition: 'outer-top',
+      font: "'Roboto', sans-serif",
+      fontSize: undefined,
+      controlsScale: 1,
+    },
+    ...props.options,
+  };
+
   //
   //
   // Define stateful params
-  const [svgId] = useState('svg-' + simpleUID());
-  const [worldDaylightMap] = useState<WDMG>(new WDMG(svgId));
+  const [worldDaylightMap] = useState<WDMG>(new WDMG());
   const [fontScaleFactor, setFontScaleFactor] = useState(1);
 
+  //
+  //
   // Get Styles
-  const classes = useStyles(
-    { width, height, controlsPosition, font, fontSize, controlsScale },
-    fontScaleFactor
-  )();
+  const classes = useStyles(options, fontScaleFactor)();
 
+  //
+  //
   // Initialize svg with unique id
   useEffect(() => {
     worldDaylightMap.init();
   }, [worldDaylightMap]);
 
+  //
+  //
   // Determine controlsPositionClass based on controlsPosition input
+  const { controlsPosition } = options;
   let controlsPositionClass = classes.controlsPositionTop;
   switch (controlsPosition) {
     case 'outer-top':
@@ -79,6 +91,9 @@ export const WorldDaylightMap = ({
     <div
       className={classes.container}
       ref={el => {
+        //
+        //
+        // When the container's width is established, use it to calc fontScaleFactor
         if (!!el && !!el.clientWidth) {
           const containerWidth = el.clientWidth;
           let fsf = containerWidth / 1200;
@@ -86,69 +101,60 @@ export const WorldDaylightMap = ({
         }
       }}
     >
-      <svg id={svgId} />
+      <svg id={worldDaylightMap.getSvgId()} />
       <div className={classes.controls + ' ' + controlsPositionClass}>
         <div className={classes.timezoneLabel}>
-          <span className={classes.timezoneLabel} id="timezone-label-text">
-            {' '}
-          </span>
+          <span
+            className={classes.timezoneLabelText}
+            id={worldDaylightMap.getTimezoneTextId()}
+          ></span>
         </div>
         <div
           className={classes.decreaseTimezone + ' ' + classes.arrowWrapper}
-          id="decrease-timezone"
-          onClick={() => !!worldDaylightMap && worldDaylightMap.redrawAll(-60)}
+          onClick={() => worldDaylightMap.redrawAll(-60)}
         >
           <span className={classes.arrow}> &rsaquo; </span>
         </div>
         <div className={classes.time}>
-          <span className={classes.timeText} id="time-text">
-            {' '}
-          </span>
+          <span
+            className={classes.timeText}
+            id={worldDaylightMap.getTimeTextId()}
+          ></span>
         </div>
         <div
           className={classes.increaseTimezone + ' ' + classes.arrowWrapper}
-          id="increase-timezone"
-          onClick={() => !!worldDaylightMap && worldDaylightMap.redrawAll(60)}
+          onClick={() => worldDaylightMap.redrawAll(60)}
         >
           <span className={classes.arrow}> &lsaquo; </span>
         </div>
         <div
           className={classes.decreaseMonth + ' ' + classes.arrowWrapper}
-          id="decrease-month"
-          onClick={() =>
-            !!worldDaylightMap && worldDaylightMap.redrawAll(-43200)
-          }
+          onClick={() => worldDaylightMap.redrawAll(-43200)}
         >
           <span className={classes.arrow}> &lsaquo;</span>
           <span className={classes.arrow}>&lsaquo; </span>
         </div>
         <div
           className={classes.decreaseDay + ' ' + classes.arrowWrapper}
-          id="decrease-month"
-          onClick={() =>
-            !!worldDaylightMap && worldDaylightMap.redrawAll(-1440)
-          }
+          onClick={() => worldDaylightMap.redrawAll(-1440)}
         >
           <span className={classes.arrow}> &lsaquo; </span>
         </div>
         <div className={classes.date}>
-          <span className={classes.dateText} id="date-text">
-            {' '}
-          </span>
+          <span
+            className={classes.dateText}
+            id={worldDaylightMap.getDateTextId()}
+          ></span>
         </div>
         <div
           className={classes.increaseDay + ' ' + classes.arrowWrapper}
-          id="increase-day"
-          onClick={() => !!worldDaylightMap && worldDaylightMap.redrawAll(1440)}
+          onClick={() => worldDaylightMap.redrawAll(1440)}
         >
           <span className={classes.arrow}> &rsaquo; </span>
         </div>
         <div
           className={classes.increaseMonth + ' ' + classes.arrowWrapper}
-          id="increase-month"
-          onClick={() =>
-            !!worldDaylightMap && worldDaylightMap.redrawAll(43200)
-          }
+          onClick={() => worldDaylightMap.redrawAll(43200)}
         >
           <span className={classes.arrow}>&rsaquo;</span>
           <span className={classes.arrow}>&rsaquo; </span>

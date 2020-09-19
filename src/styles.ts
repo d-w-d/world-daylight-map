@@ -1,7 +1,8 @@
-import { makeStyles } from '@material-ui/core';
+import { makeStyles } from '@material-ui/styles';
 
 import { IProps } from './index';
 
+// Control-layout params
 const controlHeight = 80;
 const controlWidth = 220;
 export const outerTopControlsOffset = 60;
@@ -15,10 +16,8 @@ const squareControlsLayoutArea = `
     'decreaseMonth decreaseDay date date increaseDay increaseMonth'
     'decreaseTimezone decreaseTimezone time time increaseTimezone increaseTimezone'
 `;
-/* const rowControlsLayoutCols = `minmax(0px, 4fr) minmax(0px, 0.0fr) minmax(0px, 1fr) minmax(0px, 2fr) minmax(0px, 1fr) minmax( 0px, 0.0fr ) repeat(2, minmax(0px, 1fr)) minmax(0px, 2fr) repeat(2, minmax(0px, 1fr)) `;
-const rowControlsLayoutRows = `minmax(0px, 1fr)`;
-const rowControlsLayoutArea = `'timeZoneLabel . decreaseTimezone time increaseTimezone . decreaseMonth decreaseDay date increaseDay increaseMonth'`; */
 
+// Params for controls in row-ish layout
 const rowControlsLayoutCols =
   'minmax(0px, 1fr) minmax(0px, 2fr) minmax(0px, 1fr) minmax(0px, 4fr) minmax(0px, 1fr) minmax( 0px, 1fr ) minmax(0px, 2fr) repeat(2, minmax(0px, 1fr)) ';
 const rowControlsLayoutRows = 'minmax(0px, 1fr)';
@@ -33,10 +32,10 @@ export const useStyles = (
     font,
     fontSize,
     controlsScale = 1,
-  }: IProps,
+  }: IProps['options'],
   fontScaleFactor: number = 1
 ) => {
-  // console.log('font', fontScaleFactor);
+  // console.log('width height', width, height);
 
   const svgHeight =
     controlsPosition === 'outer-top'
@@ -47,7 +46,6 @@ export const useStyles = (
     theme => ({
       container: {
         position: 'relative',
-        // backgroundColor: 'green',
         width,
         height,
         margin: 'auto',
@@ -104,9 +102,15 @@ export const useStyles = (
         //
       },
 
+      timezoneLabelText: {
+        whiteSpace: 'normal',
+        textAlign: 'center',
+      },
+
       timeText: {
         //
       },
+
       dateText: {
         //
       },
@@ -189,57 +193,18 @@ export const useStyles = (
       },
 
       //////////////////////////////////////
-      // Control Grid Cell Containers
+      // Control Grid Cell Area Labels
       //////////////////////////////////////
-      timezoneLabel: {
-        gridArea: 'timeZoneLabel',
-        // fontSize: 14,
-        // background-color: green;
-        '& #timezone-label-text': {
-          whiteSpace: 'normal',
-          textAlign: 'center',
-          // wordWrap: 'normal'
-        },
-      },
-      increaseTimezone: {
-        gridArea: 'decreaseTimezone',
-        // background-color: red;
-      },
-      time: {
-        gridArea: 'time',
-        // background-color: yellow;
-      },
-      decreaseTimezone: {
-        gridArea: 'increaseTimezone',
-        // background-color: brown;
-      },
-      daylightSavingsLabel: {
-        gridArea: 'daylightSavingsLabel',
-        // background-color: purple;
-      },
-      decreaseMonth: {
-        gridArea: 'decreaseMonth',
-        // background-color: orange;
-      },
-      decreaseDay: {
-        gridArea: 'decreaseDay',
-        // background-color: pink;
-      },
-      date: {
-        gridArea: 'date',
-        // background-color: cyan;
-        '& date-text': {
-          fontSize: '16px',
-        },
-      },
-      increaseDay: {
-        gridArea: 'increaseDay',
-        // background-color: blue;
-      },
-      increaseMonth: {
-        gridArea: 'increaseMonth',
-        // background-color: magenta;
-      },
+      timezoneLabel: { gridArea: 'timeZoneLabel' },
+      increaseTimezone: { gridArea: 'decreaseTimezone' },
+      time: { gridArea: 'time' },
+      decreaseTimezone: { gridArea: 'increaseTimezone' },
+      daylightSavingsLabel: { gridArea: 'daylightSavingsLabel' },
+      decreaseMonth: { gridArea: 'decreaseMonth' },
+      decreaseDay: { gridArea: 'decreaseDay' },
+      date: { gridArea: 'date' },
+      increaseDay: { gridArea: 'increaseDay' },
+      increaseMonth: { gridArea: 'increaseMonth' },
     }),
     { name: 'world-daylight-map' }
   );
