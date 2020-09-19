@@ -1,0 +1,59 @@
+{
+  "version": "0.1.0",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "test": "tsdx test --passWithNoTests",
+    "lint": "tsdx lint src test",
+    "prepare": "tsdx build"
+  },
+  "peerDependencies": {
+    "react": ">=16"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint --fix"
+    }
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "tabWidth": 2,
+    "htmlWhitespaceSensitivity": "ignore"
+  },
+  "name": "world-daylight-map",
+  "author": "d-w-d",
+  "module": "dist/world-daylight-map.esm.js",
+  "devDependencies": {
+    "@types/d3": "^5.7.2",
+    "@types/react": "^16.9.49",
+    "@types/react-dom": "^16.9.8",
+    "@types/suncalc": "^1.8.0",
+    "@types/topojson": "^3.2.2",
+    "husky": "^4.3.0",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "tsdx": "^0.13.3",
+    "tslib": "^2.0.1",
+    "typescript": "^4.0.2"
+  },
+  "dependencies": {
+    "@material-ui/core": "^4.11.0",
+    "d3": "^6.1.1",
+    "moment": "^2.28.0",
+    "suncalc": "^1.8.0",
+    "topojson": "^3.0.2"
+  }
+}
