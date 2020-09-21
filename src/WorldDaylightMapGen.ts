@@ -10,18 +10,22 @@ import { IXY, ILatLng, IOptions } from './models';
 import { simpleUID } from './utils';
 
 export class WorldDaylightMapGen {
+  //
   // Define unique ids for this instance
+  //
   private readonly uid = simpleUID();
   private readonly svgId = 'svg-' + this.uid;
   private readonly dateTextId = 'date-text-' + this.uid;
   private readonly timeTextId = 'time-text-' + this.uid;
   private readonly timezoneTextId = 'timezone-text-' + this.uid;
+  //
   // Other params
+  //
+  private containerWidth = 500;
   private currDate: Date = new Date();
   private svg: SVGElement | undefined;
   private projectionScale: number;
   private animInterval?: number;
-  private isAnimating = false;
   private options: IOptions;
   private scalarX: number;
   private scalarY: number;
@@ -41,6 +45,10 @@ export class WorldDaylightMapGen {
       throw new Error('Unmet dependency (requires d3.js, SunCalc)');
     }
 
+    /**
+     * TODO: the options values vs. class properties seems like a pointless demarcation
+     * TODO: ... might as well reduce to just class properties at some point
+     */
     this.options = {
       // Default Values
       tickDur: 400,
@@ -58,6 +66,8 @@ export class WorldDaylightMapGen {
       lightsColor: '#FFBEA0',
       worldPaths: 'assets/world-110m.json',
       citiesDataPath: 'assets/cities-200000.json',
+      isSunshineDisplayed: true,
+      icons: [],
       // Custom Values
       ...options,
     };
@@ -72,6 +82,12 @@ export class WorldDaylightMapGen {
   getTimeTextId = () => this.timeTextId;
   getTimezoneTextId = () => this.timezoneTextId;
   getDateTextId = () => this.dateTextId;
+
+  // Setters
+  setContainerWidth = (val: number) => {
+    this.containerWidth = val;
+    this.redrawAll();
+  };
 
   // Utility method for altering color luminance.
   colorLuminance(hex: string, lum = 0) {
@@ -128,7 +144,6 @@ export class WorldDaylightMapGen {
   getAllSunPositionsAtLng(lng: number): { peak: number; lat: number } {
     let peak = 0;
     let lat = -90;
-
     while (lat < 90) {
       const alt = SunCalc.getPosition(this.currDate, lat, lng).altitude;
       if (alt > peak) peak = alt;
@@ -277,7 +292,7 @@ export class WorldDaylightMapGen {
         `0 0  ${this.options.mapWidth} ${this.options.mapHeight}`
       )
       .attr('preserveAspectRatio', 'none')
-      // DWD: I'm extending the rect above the top edge of the svg
+      // DWD: I'm extending the rect above the top edge of the svg by 999
       // in order to provide a background to the controls when "outer-top" selected
       .append('rect')
       .attr('width', this.options.mapWidth)
@@ -287,6 +302,7 @@ export class WorldDaylightMapGen {
   }
 
   drawSun() {
+    if (!this.options.isSunshineDisplayed) return;
     const { x, y } = this.getSunPosition();
     d3.select(this.svg!)
       .append('circle')
@@ -296,6 +312,32 @@ export class WorldDaylightMapGen {
       .attr('r', 150)
       .attr('opacity', 1)
       .attr('fill', 'url(#radialGradient)');
+  }
+
+  drawIcons() {
+    this.options.icons.forEach((icon, ind) => {
+      // Logic to decide/prioritize icon size
+      const iconToSvgWidthRatio = icon.iconToSvgWidthRatio || 1 / 20;
+      const defaultSize = this.containerWidth * iconToSvgWidthRatio;
+      const iconWidth = icon.iconWidth || icon.iconHeight || defaultSize;
+      const iconHeight = icon.iconHeight || icon.iconWidth || defaultSize;
+      const { x, y } = this.coordToXY(icon.iconCoord);
+      const iconId = 'icon-id-' + ind;
+      d3.select(this.svg!)
+        .append('a')
+        .attr('href', icon.iconLink || '')
+        .append('image')
+        .attr('href', icon.iconUrl)
+        .attr('x', x - iconWidth / 2)
+        .attr('y', y - iconHeight / 2)
+        .attr('id', iconId)
+        .attr('width', iconWidth)
+        .attr('height', iconHeight)
+        .attr('opacity', 1)
+        .attr('preserveAspectRatio', 'none')
+        .append('title')
+        .text(icon.iconLabel);
+    });
   }
 
   drawPath() {
@@ -356,22 +398,10 @@ export class WorldDaylightMapGen {
     });
   }
 
-  redrawSun(isAnimating: boolean) {
+  redrawSun(): void {
+    if (!this.options.isSunshineDisplayed) return;
     const xy = this.getSunPosition();
-    const curX = parseInt(d3.select('#sun').attr('cx'), 10);
-
-    if (isAnimating && Math.abs(xy.x - curX) < this.options.mapWidth * 0.8) {
-      return d3
-        .select('#sun')
-        .transition()
-        .duration(this.options.tickDur)
-        .ease(d3.easeLinear)
-        .attr('cx', xy.x)
-        .attr('cy', xy.y);
-    }
-
-    return d3
-      .select('#sun')
+    d3.select('#sun')
       .attr('cx', xy.x)
       .attr('cy', xy.y);
   }
@@ -389,25 +419,16 @@ export class WorldDaylightMapGen {
     });
   }
 
-  redrawPath(isAnimating: boolean) {
+  redrawPath() {
     let path = this.getPathString(this.isNorthSun(this.currDate));
     let nightPath = d3.select('#nightPath');
-
-    if (isAnimating) {
-      return nightPath //
-        .transition()
-        .duration(this.options.tickDur)
-        .ease(d3.easeLinear)
-        .attr('d', path);
-    }
-
     return nightPath.attr('d', path);
   }
 
-  redrawAll(increment = 15, isAnimating = false) {
+  redrawAll(increment = 15) {
     this.currDate.setMinutes(this.currDate.getMinutes() + increment);
-    this.redrawPath(isAnimating);
-    this.redrawSun(isAnimating);
+    this.redrawPath();
+    this.redrawSun();
     this.redrawCities();
     this.updateDateTime();
   }
@@ -415,10 +436,12 @@ export class WorldDaylightMapGen {
   drawAll() {
     this.drawSVG();
     this.createDefs();
+    this.drawIcons();
     this.drawLand();
     this.drawPath();
     this.drawSun();
-    this.drawCities();
+    // this.drawCities();
+    this.drawIcons();
   }
 
   shuffleElements() {
@@ -436,16 +459,6 @@ export class WorldDaylightMapGen {
     // if (!sun) throw new Error('Poor logic: sun');
     // land.parentNode!.insertBefore(land, night);
     // sun.parentNode!.insertBefore(sun, land);
-  }
-
-  animate(increment = 0) {
-    if (!this.isAnimating) {
-      this.isAnimating = true;
-      /* 			this.animInterval = setInterval(() => {
-                            this.redrawAll(increment);
-                            $(document).trigger('update-date-time', this.currDate);
-                        }, this.options.tickDur); */
-    }
   }
 
   updateDateTime() {
@@ -490,7 +503,6 @@ export class WorldDaylightMapGen {
   }
 
   stop() {
-    this.isAnimating = false;
     clearInterval(this.animInterval);
   }
 
@@ -507,9 +519,8 @@ export class WorldDaylightMapGen {
     this.updateDateTime();
     this.drawAll();
     setInterval(() => {
-      if (this.isAnimating) return;
       if (!this.options.refreshMap) return;
-      this.redrawAll(1, false);
+      this.redrawAll(1);
       this.updateDateTime();
     }, this.options.refreshMapInterval);
   }

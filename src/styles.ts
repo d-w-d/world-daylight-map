@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/styles';
 import { IProps } from './index';
 
 // Control-layout params
-const controlHeight = 80;
+const controlHeight = 120;
 const controlWidth = 220;
 export const outerTopControlsOffset = 60;
 
@@ -60,6 +60,12 @@ export const useStyles = (
           bottom: '0px',
           height: svgHeight,
           overflow: 'visible',
+        },
+
+        // Make sure we override any global box-size setting:
+        boxSizing: 'border-box',
+        '& *': {
+          boxSizing: 'border-box',
         },
       },
 

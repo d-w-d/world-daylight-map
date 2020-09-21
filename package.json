@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -42,6 +42,7 @@
     "@types/react-dom": "^16.9.8",
     "@types/suncalc": "^1.8.0",
     "@types/topojson": "^3.2.2",
+    "gh-pages": "^3.1.0",
     "husky": "^4.3.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",

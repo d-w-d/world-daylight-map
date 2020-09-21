@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { simpleUID } from './utils';
+import { IIcon } from './models';
 
 import { useStyles } from './styles';
 import { WorldDaylightMapGen as WDMG } from './WorldDaylightMapGen';
+
 export type TControlsPosition =
   | 'outer-top'
   | 'top'
@@ -15,35 +16,54 @@ export type TControlsPosition =
 
 export interface IProps {
   options: {
+    //
+    // Settings passed to styles.ts
+    //
     width?: number | string;
     height?: number | string;
     controlsPosition?: TControlsPosition;
     font?: string;
     fontSize?: number | string;
     controlsScale?: number;
+    //
+    // Settings passed to WorldDaylightMapGen.ts
+    //
+    isSunshineDisplayed?: boolean;
+    icons?: IIcon[];
   };
 }
 
-export const WorldDaylightMap = (props: IProps) => {
+const defaultProps: IProps = {
+  options: {
+    width: '100%',
+    height: '100%',
+    controlsPosition: 'outer-top',
+    font: "'Roboto', sans-serif",
+    fontSize: undefined,
+    controlsScale: 1,
+    isSunshineDisplayed: true,
+    icons: [],
+  },
+};
+
+export type Options = Partial<IProps['options']>;
+
+export const WorldDaylightMap = (props: Partial<IProps> = defaultProps) => {
   //
   //
-  // Combine supplied options with default values
+  // Merge supplied options with default values
   const options: IProps['options'] = {
-    ...{
-      width: '100%',
-      height: '100%',
-      controlsPosition: 'outer-top',
-      font: "'Roboto', sans-serif",
-      fontSize: undefined,
-      controlsScale: 1,
-    },
-    ...props.options,
+    ...defaultProps.options,
+    ...(!!props ? props.options : {}),
   };
+  const { isSunshineDisplayed, icons } = options;
 
   //
   //
   // Define stateful params
-  const [worldDaylightMap] = useState<WDMG>(new WDMG());
+  const [worldDaylightMap] = useState<WDMG>(
+    new WDMG({ isSunshineDisplayed, icons })
+  );
   const [fontScaleFactor, setFontScaleFactor] = useState(1);
 
   //
@@ -96,6 +116,7 @@ export const WorldDaylightMap = (props: IProps) => {
         // When the container's width is established, use it to calc fontScaleFactor
         if (!!el && !!el.clientWidth) {
           const containerWidth = el.clientWidth;
+          worldDaylightMap.setContainerWidth(containerWidth);
           let fsf = containerWidth / 1200;
           setFontScaleFactor(fsf);
         }
@@ -113,7 +134,7 @@ export const WorldDaylightMap = (props: IProps) => {
           className={classes.decreaseTimezone + ' ' + classes.arrowWrapper}
           onClick={() => worldDaylightMap.redrawAll(-60)}
         >
-          <span className={classes.arrow}> &rsaquo; </span>
+          <span className={classes.arrow}>&rsaquo;</span>
         </div>
         <div className={classes.time}>
           <span
@@ -125,20 +146,20 @@ export const WorldDaylightMap = (props: IProps) => {
           className={classes.increaseTimezone + ' ' + classes.arrowWrapper}
           onClick={() => worldDaylightMap.redrawAll(60)}
         >
-          <span className={classes.arrow}> &lsaquo; </span>
+          <span className={classes.arrow}>&lsaquo;</span>
         </div>
         <div
           className={classes.decreaseMonth + ' ' + classes.arrowWrapper}
           onClick={() => worldDaylightMap.redrawAll(-43200)}
         >
-          <span className={classes.arrow}> &lsaquo;</span>
-          <span className={classes.arrow}>&lsaquo; </span>
+          <span className={classes.arrow}>&lsaquo;</span>
+          <span className={classes.arrow}>&lsaquo;</span>
         </div>
         <div
           className={classes.decreaseDay + ' ' + classes.arrowWrapper}
           onClick={() => worldDaylightMap.redrawAll(-1440)}
         >
-          <span className={classes.arrow}> &lsaquo; </span>
+          <span className={classes.arrow}>&lsaquo;</span>
         </div>
         <div className={classes.date}>
           <span
@@ -150,18 +171,20 @@ export const WorldDaylightMap = (props: IProps) => {
           className={classes.increaseDay + ' ' + classes.arrowWrapper}
           onClick={() => worldDaylightMap.redrawAll(1440)}
         >
-          <span className={classes.arrow}> &rsaquo; </span>
+          <span className={classes.arrow}>&rsaquo;</span>
         </div>
         <div
           className={classes.increaseMonth + ' ' + classes.arrowWrapper}
           onClick={() => worldDaylightMap.redrawAll(43200)}
         >
           <span className={classes.arrow}>&rsaquo;</span>
-          <span className={classes.arrow}>&rsaquo; </span>
+          <span className={classes.arrow}>&rsaquo;</span>
         </div>
       </div>
     </div>
   );
 };
+
+WorldDaylightMap.defaultProps = defaultProps;
 
 export default WorldDaylightMap;

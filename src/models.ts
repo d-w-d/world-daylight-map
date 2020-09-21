@@ -1,4 +1,7 @@
 export interface IOptions {
+  //
+  // Hard-coded settings
+  //
   tickDur: number;
   shadowOpacity: number;
   lightsOpacity: number;
@@ -14,6 +17,11 @@ export interface IOptions {
   lightsColor: string;
   worldPaths: string;
   citiesDataPath: string;
+  //
+  // User-submitted params
+  //
+  isSunshineDisplayed: boolean;
+  icons: IIcon[];
 }
 
 export interface ILatLng {
@@ -24,4 +32,14 @@ export interface ILatLng {
 export interface IXY {
   x: number;
   y: number;
+}
+
+export interface IIcon {
+  iconLabel: string;
+  iconCoord: ILatLng;
+  iconUrl: string;
+  iconToSvgWidthRatio?: number;
+  iconWidth?: number;
+  iconHeight?: number;
+  iconLink?: string;
 }
