@@ -5,7 +5,7 @@ import { WorldDaylightMap, Options } from '../.';
 // const WorldDaylightMap = require('../dist').default;
 import './styles.css';
 
-const iconToSvgWidthRatio = 1 / 10;
+const iconToSvgWidthRatio = 1 / 20;
 
 const options: Options = {
   /*   width: '100%',

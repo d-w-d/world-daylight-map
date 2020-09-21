@@ -440,7 +440,7 @@ export class WorldDaylightMapGen {
     this.drawLand();
     this.drawPath();
     this.drawSun();
-    // this.drawCities();
+    this.drawCities();
     this.drawIcons();
   }
 
