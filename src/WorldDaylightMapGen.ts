@@ -14,10 +14,8 @@ export class WorldDaylightMapGen {
   // Define unique ids for this instance
   //
   private readonly uid = simpleUID();
-  private readonly svgId = 'svg-' + this.uid;
-  private readonly dateTextId = 'date-text-' + this.uid;
-  private readonly timeTextId = 'time-text-' + this.uid;
-  private readonly timezoneTextId = 'timezone-text-' + this.uid;
+  private readonly nightPathId = 'night-path-id-' + this.uid;
+  private readonly sunId = 'sun-id-' + this.uid;
   //
   // Other params
   //
@@ -25,7 +23,6 @@ export class WorldDaylightMapGen {
   private currDate: Date = new Date();
   private svg: SVGElement | undefined;
   private projectionScale: number;
-  private animInterval?: number;
   private options: IOptions;
   private scalarX: number;
   private scalarY: number;
@@ -39,7 +36,13 @@ export class WorldDaylightMapGen {
     opacity: 0 | 1;
   }[] = [];
 
-  constructor(options?: Partial<IOptions>) {
+  constructor(
+    private readonly svgId: string,
+    private readonly timeId: string,
+    private readonly dateId: string,
+    private readonly timezoneId: string,
+    options?: Partial<IOptions>
+  ) {
     // Check for dependencies
     if (!SunCalc || !d3) {
       throw new Error('Unmet dependency (requires d3.js, SunCalc)');
@@ -75,13 +78,16 @@ export class WorldDaylightMapGen {
     this.scalarX = this.options.mapWidth / 360;
     this.scalarY = this.options.mapHeight / 180;
     this.projectionScale = this.options.mapWidth / 6.25;
-  }
 
-  // Getters
-  getSvgId = () => this.svgId;
-  getTimeTextId = () => this.timeTextId;
-  getTimezoneTextId = () => this.timezoneTextId;
-  getDateTextId = () => this.dateTextId;
+    // Find and set SVGElement
+    const svg: SVGElement | null = document.getElementById(this.svgId) as any;
+    if (!(svg instanceof SVGElement)) {
+      throw new Error("Can't find span with id: " + this.svgId);
+    }
+    this.svg = svg;
+    this.updateDateTime();
+    this.drawAll();
+  }
 
   // Setters
   setContainerWidth = (val: number) => {
@@ -322,7 +328,7 @@ export class WorldDaylightMapGen {
       const iconWidth = icon.iconWidth || icon.iconHeight || defaultSize;
       const iconHeight = icon.iconHeight || icon.iconWidth || defaultSize;
       const { x, y } = this.coordToXY(icon.iconCoord);
-      const iconId = 'icon-id-' + ind;
+      // const iconId = 'icon-id-' + ind;
       d3.select(this.svg!)
         .append('a')
         .attr('href', icon.iconLink || '')
@@ -330,7 +336,7 @@ export class WorldDaylightMapGen {
         .attr('href', icon.iconUrl)
         .attr('x', x - iconWidth / 2)
         .attr('y', y - iconHeight / 2)
-        .attr('id', iconId)
+        // .attr('id', iconId)
         .attr('width', iconWidth)
         .attr('height', iconHeight)
         .attr('opacity', 1)
@@ -344,7 +350,7 @@ export class WorldDaylightMapGen {
     const path = this.getPathString(this.isNorthSun(this.currDate));
     d3.select(this.svg!)
       .append('path')
-      .attr('id', 'nightPath')
+      .attr('id', this.nightPathId)
       .attr('fill', 'rgb(0,0,0)')
       .attr('fill-opacity', this.options.shadowOpacity)
       .attr('d', path);
@@ -401,7 +407,7 @@ export class WorldDaylightMapGen {
   redrawSun(): void {
     if (!this.options.isSunshineDisplayed) return;
     const xy = this.getSunPosition();
-    d3.select('#sun')
+    d3.select(`#${this.sunId}`)
       .attr('cx', xy.x)
       .attr('cy', xy.y);
   }
@@ -421,12 +427,13 @@ export class WorldDaylightMapGen {
 
   redrawPath() {
     let path = this.getPathString(this.isNorthSun(this.currDate));
-    let nightPath = d3.select('#nightPath');
+    let nightPath = d3.select(`#${this.nightPathId}`);
     return nightPath.attr('d', path);
   }
 
-  redrawAll(increment = 15) {
-    this.currDate.setMinutes(this.currDate.getMinutes() + increment);
+  redrawAll(increment: number = 0) {
+    !!increment &&
+      this.currDate.setMinutes(this.currDate.getMinutes() + increment);
     this.redrawPath();
     this.redrawSun();
     this.redrawCities();
@@ -463,8 +470,8 @@ export class WorldDaylightMapGen {
 
   updateDateTime() {
     //
-    //
     // Determine Timezone
+    //
     const regEx = this.currDate.toString().match(/\(([A-Za-z\s].*)\)/);
     if (!regEx) {
       throw new Error('Poor Logic');
@@ -472,56 +479,33 @@ export class WorldDaylightMapGen {
     const tz = regEx[1];
 
     //
-    //
     // Set Displayed Timezone
-    const timezoneLabelText = document.getElementById(this.timezoneTextId);
+    //
+    const timezoneLabelText = document.getElementById(this.timezoneId);
     if (timezoneLabelText) {
       timezoneLabelText.innerText = tz;
     } else {
-      throw new Error("Can't find span with id: " + this.timezoneTextId);
+      throw new Error("Can't find span with id: " + this.timezoneId);
     }
 
     //
-    //
     // Set Displayed Time
-    const timeTextSpan = document.getElementById(this.timeTextId);
+    //
+    const timeTextSpan = document.getElementById(this.timeId);
     if (timeTextSpan) {
       timeTextSpan.innerText = moment(this.currDate).format('HH:mm');
     } else {
-      throw new Error("Can't find span with id: " + this.timeTextId);
+      throw new Error("Can't find span with id: " + this.timeId);
     }
 
     //
-    //
     // Set Displayed Date
-    const dateTextSpan = document.getElementById(this.dateTextId);
+    //
+    const dateTextSpan = document.getElementById(this.dateId);
     if (dateTextSpan) {
       dateTextSpan.innerText = moment(this.currDate).format('DD MMM');
     } else {
-      throw new Error("Can't find span with id: " + this.dateTextId);
+      throw new Error("Can't find span with id: " + this.dateId);
     }
-  }
-
-  stop() {
-    clearInterval(this.animInterval);
-  }
-
-  init() {
-    //
-    // Find and set SVGElement
-    const svg: SVGElement | null = document.getElementById(this.svgId) as any;
-    if (!(svg instanceof SVGElement)) {
-      throw new Error("Can't find span with id: " + this.svgId);
-    }
-    this.svg = svg;
-
-    // ...
-    this.updateDateTime();
-    this.drawAll();
-    setInterval(() => {
-      if (!this.options.refreshMap) return;
-      this.redrawAll(1);
-      this.updateDateTime();
-    }, this.options.refreshMapInterval);
   }
 }
