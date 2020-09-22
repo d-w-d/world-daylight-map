@@ -13,7 +13,7 @@ const options: Options = {
   controlsScale: 1,
   font: "'Roboto', sans-serif",
   fontSize: undefined,
-  isSunshineDisplayed: !true,
+  isSunshineDisplayed: true,
   icons,
 };
 

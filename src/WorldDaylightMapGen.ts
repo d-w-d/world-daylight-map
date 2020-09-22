@@ -16,6 +16,10 @@ export class WorldDaylightMapGen {
   private readonly uid = simpleUID();
   private readonly nightPathId = 'night-path-id-' + this.uid;
   private readonly sunId = 'sun-id-' + this.uid;
+  private readonly landId = 'land-id-' + this.uid;
+  private readonly landGradientId = 'land-gradient-id-' + this.uid;
+  private readonly linearGradientId = 'linear-gradient-id-' + this.uid;
+  private readonly radialGradientId = 'radial-gradient-id-' + this.uid;
   //
   // Other params
   //
@@ -118,7 +122,8 @@ export class WorldDaylightMapGen {
   }
 
   isNorthSun(date: Date): boolean {
-    return this.isDaylight(SunCalc.getPosition(date, 90, 0));
+    const result = this.isDaylight(SunCalc.getPosition(date, 90, 0));
+    return result;
   }
 
   getSunriseSunsetLatitude(lng: number, isNorthSun: boolean): number {
@@ -150,12 +155,15 @@ export class WorldDaylightMapGen {
   getAllSunPositionsAtLng(lng: number): { peak: number; lat: number } {
     let peak = 0;
     let lat = -90;
+    let result: { peak: number; lat: number } = { peak, lat };
     while (lat < 90) {
       const alt = SunCalc.getPosition(this.currDate, lat, lng).altitude;
-      if (alt > peak) peak = alt;
+      if (alt > peak) {
+        peak = alt;
+        result = { peak, lat };
+      }
       lat += this.options.precisionLng;
     }
-    const result: { peak: number; lat: number } = { peak, lat };
     return result;
   }
 
@@ -239,17 +247,17 @@ export class WorldDaylightMapGen {
     d3.select(this.svg!)
       .append('defs')
       .append('linearGradient')
-      .attr('id', 'gradient')
+      .attr('id', this.linearGradientId)
       .attr('x1', '0%')
       .attr('y1', '0%')
       .attr('x2', '100%')
       .attr('y2', '0%');
 
-    d3.select('#gradient')
+    d3.select(`#${this.linearGradientId}`)
       .append('stop')
       .attr('offset', '0%')
       .attr('stop-color', this.options.bgColorLeft);
-    d3.select('#gradient')
+    d3.select(`#${this.linearGradientId}`)
       .append('stop')
       .attr('offset', '100%')
       .attr('stop-color', this.options.bgColorRight);
@@ -257,18 +265,18 @@ export class WorldDaylightMapGen {
     d3.select(this.svg!)
       .select('defs')
       .append('linearGradient')
-      .attr('id', 'landGradient')
+      .attr('id', this.landGradientId)
       .attr('x1', '0%')
       .attr('y1', '0%')
       .attr('x2', '100%')
       .attr('y2', '0%');
 
-    d3.select('#landGradient')
+    d3.select(`#${this.landGradientId}`)
       .append('stop')
       .attr('offset', '0%')
       .attr('stop-color', this.colorLuminance(this.options.bgColorLeft, -0.2));
 
-    d3.select('#landGradient')
+    d3.select(`#${this.landGradientId}`)
       .append('stop')
       .attr('offset', '100%')
       .attr('stop-color', this.colorLuminance(this.options.bgColorRight, -0.2));
@@ -276,15 +284,15 @@ export class WorldDaylightMapGen {
     d3.select(this.svg!)
       .select('defs')
       .append('radialGradient')
-      .attr('id', 'radialGradient');
+      .attr('id', this.radialGradientId);
 
-    d3.select('#radialGradient')
+    d3.select(`#${this.radialGradientId}`)
       .append('stop')
       .attr('offset', '0%')
       .attr('stop-opacity', this.options.sunOpacity)
       .attr('stop-color', 'rgb(255, 255, 255)');
 
-    d3.select('#radialGradient')
+    d3.select(`#${this.radialGradientId}`)
       .append('stop')
       .attr('offset', '100%')
       .attr('stop-opacity', 0)
@@ -304,7 +312,7 @@ export class WorldDaylightMapGen {
       .attr('width', this.options.mapWidth)
       .attr('height', this.options.mapHeight + 999)
       .attr('y', -999)
-      .attr('fill', 'url(#gradient)');
+      .attr('fill', `url(#${this.linearGradientId})`);
   }
 
   drawSun() {
@@ -314,10 +322,10 @@ export class WorldDaylightMapGen {
       .append('circle')
       .attr('cx', x)
       .attr('cy', y)
-      .attr('id', 'sun')
+      .attr('id', this.sunId)
       .attr('r', 150)
       .attr('opacity', 1)
-      .attr('fill', 'url(#radialGradient)');
+      .attr('fill', `url(#${this.radialGradientId})`);
   }
 
   drawIcons() {
@@ -365,12 +373,10 @@ export class WorldDaylightMapGen {
 
     d3.select(this.svg!)
       .append('path')
-      .attr('id', 'land')
-      .attr('fill', 'url(#landGradient)')
+      .attr('id', this.landId)
+      .attr('fill', `url(#${this.landGradientId})`)
       .datum(topojson.feature(worldSVG as any, worldSVG.objects.land as any))
       .attr('d', d3.geoPath().projection(projection));
-
-    this.shuffleElements();
   }
 
   drawCities() {
@@ -449,23 +455,6 @@ export class WorldDaylightMapGen {
     this.drawSun();
     this.drawCities();
     this.drawIcons();
-  }
-
-  shuffleElements() {
-    //
-    // DWD: Not sure what this is supposed to do
-    //
-    /* 				$('#land').insertBefore('#nightPath');
-            return $('#sun').insertBefore('#land'); */
-    // const land = document.getElementById('land');
-    // const night = document.getElementById('nightPath');
-    // console.log('nightpath', night);
-    // const sun = document.getElementById('sun');
-    // if (!land) throw new Error('Poor logic: land');
-    // if (!night) throw new Error('Poor logic: night');
-    // if (!sun) throw new Error('Poor logic: sun');
-    // land.parentNode!.insertBefore(land, night);
-    // sun.parentNode!.insertBefore(sun, land);
   }
 
   updateDateTime() {
