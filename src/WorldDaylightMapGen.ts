@@ -385,7 +385,7 @@ export class WorldDaylightMapGen {
       // ["1137347", "Dubai", "25.0657", "55.17128", "03", "AE"],
       const coord = { lat: parseFloat(val[2]), lng: parseFloat(val[3]) };
       const xy = this.coordToXY(coord);
-      const id = `city${i}`;
+      const id = `city-${i}-${this.uid}`;
       const opacity = this.getCityOpacity(coord);
       const radius = this.getCityRadius(parseFloat(val[0]));
 
