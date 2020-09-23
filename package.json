@@ -1,7 +1,15 @@
 {
-  "version": "1.1.4",
+  "version": "1.1.5",
   "license": "MIT",
   "main": "dist/index.js",
+  "keywords": [
+    "map",
+    "daylight",
+    "nighttime",
+    "sun",
+    "night",
+    "day"
+  ],
   "typings": "dist/index.d.ts",
   "files": [
     "dist",

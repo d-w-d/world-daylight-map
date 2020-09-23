@@ -4,9 +4,7 @@
 
 A library enabling you to embed a map of the world with a daylight/night-time overlay.
 
-<!-- ![alt text](readmeImages/example1.png) -->
-
-<img src="readmeImages/example1.png" width="300">
+<img src="https://d-w-d.github.io/world-daylight-map/images/example1.png" width="300">
 
 see demo [here](https://d-w-d.github.io/world-daylight-map/).
 
