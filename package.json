@@ -1,5 +1,5 @@
 {
-  "version": "1.1.5",
+  "version": "1.1.6",
   "license": "MIT",
   "main": "dist/index.js",
   "keywords": [
@@ -10,6 +10,10 @@
     "night",
     "day"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/d-w-d/world-daylight-map"
+  },
   "typings": "dist/index.d.ts",
   "files": [
     "dist",
