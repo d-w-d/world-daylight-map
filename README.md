@@ -112,6 +112,16 @@ Notes on options:
     - iconHeight
       - Optional. If provided, it will override iconToSvgWidthRatio. iconHeight has to be a number that directly sets the height in pixels. It will also determine the icon's width if iconWidth is not provided
 
+## Acknowledgements
+
+This library is adapted from [Paul J. Noble's repo](https://github.com/pauljnoble/world-daylight-map). I thank him for his research and elegant approach to this problem, as well as the authors of the libraries and data sources that he mentions that are used in these two repos:
+
+- [D3](https://github.com/d3/d3)
+- [Maxmind Cities](https://www.maxmind.com/en/geoip2-city)
+- [Topojson](https://github.com/topojson/topojson)
+- [SunCalc](https://github.com/mourner/suncalc)
+- [Moment](https://github.com/moment/moment)
+
 ## TODOs
 
 - Enable UMD build
