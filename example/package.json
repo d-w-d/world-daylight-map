@@ -1,25 +1,22 @@
 {
-  "name": "example",
-  "version": "1.1.2",
-  "main": "index.js",
-  "license": "MIT",
+  "name": "example-use-of-lib",
+  "source": "index.html",
   "scripts": {
     "start": "parcel index.html",
-    "build": "parcel build index.html"
-  },
-  "dependencies": {
-    "react-app-polyfill": "^1.0.0"
+    "build": "parcel build"
   },
   "alias": {
-    "@material-ui/core": "../node_modules/@material-ui/core",
     "react": "../node_modules/react",
-    "react-dom": "../node_modules/react-dom/profiling",
+    "react-dom/client": "../node_modules/react-dom/client",
     "scheduler/tracing": "../node_modules/scheduler/tracing-profiling"
   },
+  "---NOTE---": [
+    "parcel sucks; had to downgrade from 2.7.0 to 1.12.5 because prior's HMR didn't work"
+  ],
   "devDependencies": {
-    "@types/react": "^16.9.11",
-    "@types/react-dom": "^16.8.4",
-    "parcel": "^1.12.3",
-    "typescript": "^3.4.5"
+    "@types/react": "^18.0.15",
+    "@types/react-dom": "^18.0.6",
+    "parcel-bundler": "^1.12.5",
+    "process": "^0.11.10"
   }
 }

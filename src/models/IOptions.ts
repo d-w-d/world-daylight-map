@@ -1,4 +1,9 @@
-export interface IOptions {
+import { IIcon } from './IIcon';
+
+/**
+ *
+ */
+export interface IWDMGOptions {
   //
   // Hard-coded settings
   //
@@ -22,24 +27,4 @@ export interface IOptions {
   //
   isSunshineDisplayed: boolean;
   icons: IIcon[];
-}
-
-export interface ILatLng {
-  lat: number;
-  lng: number;
-}
-
-export interface IXY {
-  x: number;
-  y: number;
-}
-
-export interface IIcon {
-  iconLabel: string;
-  iconCoord: ILatLng;
-  iconUrl: string;
-  iconToSvgWidthRatio?: number;
-  iconWidth?: number;
-  iconHeight?: number;
-  iconLink?: string;
 }

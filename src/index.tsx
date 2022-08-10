@@ -1,38 +1,33 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { IIcon } from './models';
 
+import { IIcon } from './models/IIcon';
+import { TControlsPosition } from './models/TControlsPosition';
+import { TStyles } from './models/TStyles';
+import { simpleUID } from './utils/simpleUID';
+import { WorldDaylightMapGen as WDMG } from './utils/WorldDaylightMapGen';
 import { useStyles } from './styles';
-import { simpleUID } from './utils';
-import { WorldDaylightMapGen as WDMG } from './WorldDaylightMapGen';
+import { useContainerDimensions } from './hooks/useContainerDimensions';
 
-export type TControlsPosition =
-  | 'outer-top'
-  | 'top'
-  | 'top-left'
-  | 'top-right'
-  | 'bottom'
-  | 'bottom-left'
-  | 'bottom-right'
-  | 'no-controls';
+let isStylesLoaded = false;
+const uniqueContainerClassName =
+  'worldDaylightMapDynamicStylesContainer-MWVmYTRkMWE2';
 
 export interface IProps {
   options: {
-    //
-    // Settings passed to styles.ts
-    //
+    /* Settings passed to styles.ts */
     width?: number | string;
     height?: number | string;
     controlsPosition?: TControlsPosition;
     font?: string;
     fontSize?: number | string;
     controlsScale?: number;
-    //
-    // Settings passed to WorldDaylightMapGen.ts
-    //
+    /* Settings passed to WorldDaylightMapGen.ts */
     isSunshineDisplayed?: boolean;
     icons?: IIcon[];
   };
 }
+
+export type Options = IProps['options'];
 
 const defaultProps: IProps = {
   options: {
@@ -47,10 +42,27 @@ const defaultProps: IProps = {
   },
 };
 
-export type Options = Partial<IProps['options']>;
-
 export const WorldDaylightMap = (props: Partial<IProps> = defaultProps) => {
-  //
+  // --->>
+
+  // Dynamically add style section to doc HEAD
+  if (!isStylesLoaded) {
+    isStylesLoaded = true;
+    const styleEl = document.createElement('style');
+    styleEl.innerHTML = `
+      .${uniqueContainerClassName} {
+        color: #FFF;
+        font-size: 24px;
+      }
+      .${uniqueContainerClassName} .hover-text :hover{
+        background-color: rgba(255, 255, 255, 0.3);
+        transition: background-color 0.2s ease-in-out;
+        cursor: pointer;
+      }
+    `;
+    document.head.appendChild(styleEl);
+  }
+
   // Merge supplied options with default values
   const options: IProps['options'] = {
     ...defaultProps.options,
@@ -73,15 +85,9 @@ export const WorldDaylightMap = (props: Partial<IProps> = defaultProps) => {
 
   // Define stateful params
   const [worldDaylightMap, setWorldDaylightMap] = useState<WDMG>();
-  const [containerWidth, setContainerWidth] = useState<number>();
   const [fontScaleFactor, setFontScaleFactor] = useState(1);
-
-  // Define callbacks
-  const redraw = (dMins: number) =>
-    !!worldDaylightMap && worldDaylightMap.redrawAll(dMins);
-
-  // Get Styles
-  const classes = useStyles(options, fontScaleFactor)();
+  const container = useRef<HTMLDivElement>(null);
+  const containerDimensions = useContainerDimensions(container);
 
   // On initial render, hand control over to WorldDaylightMapGen (with d3 under hood)
   useEffect(() => {
@@ -104,93 +110,78 @@ export const WorldDaylightMap = (props: Partial<IProps> = defaultProps) => {
 
   // Scale fontsize to container width
   useEffect(() => {
-    if (!!containerWidth && !!worldDaylightMap) {
-      worldDaylightMap.setContainerWidth(containerWidth);
-      let fsf = containerWidth / 1200;
+    if (!!containerDimensions.width && !!worldDaylightMap) {
+      worldDaylightMap.setContainerWidth(containerDimensions.width);
+      let fsf = containerDimensions.width / 1200;
       setFontScaleFactor(fsf);
     }
-  }, [containerWidth, worldDaylightMap]);
+  }, [containerDimensions, worldDaylightMap]);
 
-  // Determine controlsPositionClass based on controlsPosition input
-  const { controlsPosition } = options;
-  let controlsPositionClass = classes.controlsPositionTop;
-  switch (controlsPosition) {
-    case 'outer-top':
-      controlsPositionClass = classes.controlsPositionOuterTop;
-      break;
-    case 'top-left':
-      controlsPositionClass = classes.controlsPositionTopLeft;
-      break;
-    case 'top-right':
-      controlsPositionClass = classes.controlsPositionTopRight;
-      break;
-    case 'bottom':
-      controlsPositionClass = classes.controlsPositionBottom;
-      break;
-    case 'bottom-left':
-      controlsPositionClass = classes.controlsPositionBottomLeft;
-      break;
-    case 'bottom-right':
-      controlsPositionClass = classes.controlsPositionBottomRight;
-      break;
-    case 'no-controls':
-      controlsPositionClass = classes.controlsPositionNoControls;
-      break;
-  }
+  const redraw = (dMins: number) => {
+    !!worldDaylightMap && worldDaylightMap.redrawAll(dMins);
+  };
+
+  const styles: TStyles = useStyles(options, fontScaleFactor)();
 
   return (
     <div
-      className={classes.container}
-      ref={el => !!el && !!el.clientWidth && setContainerWidth(el.clientWidth)}
+      className={uniqueContainerClassName}
+      style={styles.container}
+      ref={container}
     >
-      <svg id={svgId} />
-      <div className={classes.controls + ' ' + controlsPositionClass}>
-        <div className={classes.timezoneLabel}>
-          <span className={classes.timezoneLabelText} id={timezoneId}></span>
+      <svg style={styles.svg} id={svgId} />
+      <div style={styles.controlsGrid}>
+        <div style={styles.timezoneLabel}>
+          <span style={styles.timezoneLabelText} id={timezoneId}></span>
         </div>
         <div
-          className={classes.decreaseTimezone + ' ' + classes.arrowWrapper}
+          className={'hover-text'}
+          style={styles.decreaseTimezone}
           onClick={() => redraw(-60)}
         >
-          <span className={classes.arrow}>&rsaquo;</span>
+          <span style={styles.arrow}>&rsaquo;</span>
         </div>
-        <div className={classes.time}>
-          <span className={classes.timeText} id={timeId}></span>
+        <div style={styles.time}>
+          <span style={styles.timeText} id={timeId}></span>
         </div>
         <div
-          className={classes.increaseTimezone + ' ' + classes.arrowWrapper}
+          className={'hover-text'}
+          style={styles.increaseTimezone}
           onClick={() => redraw(60)}
         >
-          <span className={classes.arrow}>&lsaquo;</span>
+          <span style={styles.arrow}>&lsaquo;</span>
         </div>
         <div
-          className={classes.decreaseMonth + ' ' + classes.arrowWrapper}
+          className={'hover-text'}
+          style={styles.decreaseMonth}
           onClick={() => redraw(-43200)}
         >
-          <span className={classes.arrow}>&lsaquo;</span>
-          <span className={classes.arrow}>&lsaquo;</span>
+          <span style={styles.arrow}>&lsaquo;&lsaquo;</span>
         </div>
         <div
-          className={classes.decreaseDay + ' ' + classes.arrowWrapper}
+          className={'hover-text'}
+          style={styles.decreaseDay}
           onClick={() => redraw(-1440)}
         >
-          <span className={classes.arrow}>&lsaquo;</span>
+          <span style={styles.arrow}>&lsaquo;</span>
         </div>
-        <div className={classes.date}>
-          <span className={classes.dateText} id={dateId}></span>
+        <div style={styles.date}>
+          <span style={styles.dateText} id={dateId}></span>
         </div>
         <div
-          className={classes.increaseDay + ' ' + classes.arrowWrapper}
+          className={'hover-text'}
+          style={styles.increaseDay}
           onClick={() => redraw(1440)}
         >
-          <span className={classes.arrow}>&rsaquo;</span>
+          <span style={styles.arrow}>&rsaquo;</span>
         </div>
         <div
-          className={classes.increaseMonth + ' ' + classes.arrowWrapper}
+          className={'hover-text'}
+          style={styles.increaseMonth}
           onClick={() => redraw(43200)}
         >
-          <span className={classes.arrow}>&rsaquo;</span>
-          <span className={classes.arrow}>&rsaquo;</span>
+          <span style={styles.arrow}>&rsaquo;</span>
+          <span style={styles.arrow}>&rsaquo;</span>
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@ const iconToSvgWidthRatio = 1 / 20;
 export const icons = [
   //
   {
-    iconLabel: 'University of Hawaii Institute for Astronomy',
+    iconLabel: 'University of Hawaii Institute for Astronomy ',
     iconUrl:
       'https://d-w-d.github.io/world-daylight-map/images/icon-telescope.png',
     iconCoord: { lat: 20.32229757302469, lng: -154.52142563968567 },

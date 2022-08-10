@@ -4,10 +4,12 @@ import moment from 'moment';
 import * as d3 from 'd3';
 
 // Incorporate data into built scripts for simplicity of distribution
-import citiesData from './data-cities.json';
-import worldSVG from './data-world-topo.json';
-import { IXY, ILatLng, IOptions } from './models';
-import { simpleUID } from './utils';
+import citiesData from '../data/data-cities.json';
+import worldSVG from '../data/data-world-topo.json';
+import { simpleUID } from './simpleUID';
+import { IWDMGOptions } from '../models/IOptions';
+import { IXY } from '../models/IXY';
+import { ILatLng } from '../models/ILatLng';
 
 export class WorldDaylightMapGen {
   //
@@ -27,7 +29,7 @@ export class WorldDaylightMapGen {
   private currDate: Date = new Date();
   private svg: SVGElement | undefined;
   private projectionScale: number;
-  private options: IOptions;
+  private options: IWDMGOptions;
   private scalarX: number;
   private scalarY: number;
   private cities: {
@@ -45,7 +47,7 @@ export class WorldDaylightMapGen {
     private readonly timeId: string,
     private readonly dateId: string,
     private readonly timezoneId: string,
-    options?: Partial<IOptions>
+    options?: Partial<IWDMGOptions>
   ) {
     // Check for dependencies
     if (!SunCalc || !d3) {
@@ -329,7 +331,7 @@ export class WorldDaylightMapGen {
   }
 
   drawIcons() {
-    this.options.icons.forEach((icon, ind) => {
+    this.options.icons.forEach(icon => {
       // Logic to decide/prioritize icon size
       const iconToSvgWidthRatio = icon.iconToSvgWidthRatio || 1 / 20;
       const defaultSize = this.containerWidth * iconToSvgWidthRatio;

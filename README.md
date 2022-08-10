@@ -94,9 +94,11 @@ Notes on options:
 - isSunshineDisplayed
   - Boolean that controls whether or not to display a radial gradient to mimic the sunshine on the earth's surface
 - icons
+
   - This is an array of objects that let you add icons at runtime that get displayed on the map; useful if you want to illustrate e.g. office locations for you organization
   - Note: icon sizing is rendered in svg coords, which means that the icon will get stretched unless your container has a ratio of 2:1. You can manually adjust the icon's size to compensate for this fact
   - The properties of the icon object are:
+
     - iconLabel
       - Text that will get display as a tooltip over your icon
     - iconUrl
@@ -110,7 +112,17 @@ Notes on options:
     - iconWidth
       - Optional. If provided, it will override iconToSvgWidthRatio. iconWidth has to be a number that directly sets the width in pixels. It will also determine the icon's height if iconHeight is not provided
     - iconHeight
+
       - Optional. If provided, it will override iconToSvgWidthRatio. iconHeight has to be a number that directly sets the height in pixels. It will also determine the icon's width if iconWidth is not provided
+
+## Development
+
+To run this repo in development:
+
+- open 3 tabs in your command line
+- start watching for changes to your lib (output to dist) with `npm run start`
+- to see your changes, enter the example dir with `cd example` and run `npm run start`; open browser to `localhost:1234`
+  - NOTE: this development server uses `parcel` which is simple but terrible; I had to downgrade from v2.7.0 to v1.12.5 because the prior would not detect HMR changes to the watched lib
 
 ## Acknowledgements
 
